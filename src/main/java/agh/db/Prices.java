@@ -13,6 +13,7 @@ import java.util.stream.IntStream;
 public class Prices {
     private static List<Double> PRICES = Collections.unmodifiableList(Arrays.asList(0.25, 0.36, 0.55, 0.85));
     private static List<Integer> DAYS =  Collections.unmodifiableList(Arrays.asList(10,20,30,50));
+    private static Integer priceID = 0;
 
 
     public List<Price> generateRandomPrices() {
@@ -20,7 +21,7 @@ public class Prices {
         final List<Integer> days = getRandomDays(count);
         final List<Double> prices = getRandomPrices(count);
         return IntStream.range(0, count)
-                .mapToObj(i -> new Price(prices.get(i), days.get(i)))
+                .mapToObj(i -> new Price(priceID++, prices.get(i), days.get(i)))
                 .collect(Collectors.toList());
     }
 

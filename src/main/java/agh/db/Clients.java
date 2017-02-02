@@ -56,7 +56,7 @@ public class Clients {
         }
         final String name = randomData.getNames().get(currentAttendee);
         final String studentCard = randomData.getStudentCards().get(currentAttendee);
-        Attendee attendee = new Attendee(name, attendeeID, studentCard);
+        Attendee attendee = new Attendee(name, currentAttendee, studentCard, currentClient);
         currentAttendee++;
         return attendee;
     }

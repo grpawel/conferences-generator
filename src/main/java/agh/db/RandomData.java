@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -41,10 +40,10 @@ public class RandomData {
     }
     public List<String> getWorkshopNames() {
         final List<String> parts1 = data.stream()
-                .map(apiData -> apiData.conf_name2)
+                .map(apiData -> apiData.conf_name3)
                 .collect(Collectors.toList());
         final List<String> parts2 = data.stream()
-                .map(apiData -> apiData.conf_name3)
+                .map(apiData -> apiData.conf_name2)
                 .collect(Collectors.toList());
         Collections.shuffle(parts1);
         Collections.shuffle(parts2);
@@ -69,7 +68,6 @@ public class RandomData {
     public List<String> getStudentCards() {
         return data.stream()
                 .map(apiData -> apiData.student_card)
-                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -81,7 +79,7 @@ public class RandomData {
 
     public List<String> getEmails() {
         return data.stream()
-                .map(apiData -> apiData.company_name)
+                .map(apiData -> apiData.email)
                 .collect(Collectors.toList());
     }
 
@@ -103,6 +101,7 @@ public class RandomData {
     }
 
     public LocalTime getRandomDayTime() {
+        LocalTime time = LocalTime.of(10, 50);
         return LocalTime.of(ThreadLocalRandom.current().nextInt(8,21),
                 ThreadLocalRandom.current().nextInt(0,60));
     }

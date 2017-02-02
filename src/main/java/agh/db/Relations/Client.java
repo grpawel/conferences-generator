@@ -1,6 +1,8 @@
 package agh.db.Relations;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 public class Client {
     private final Integer clientID;
@@ -21,5 +23,26 @@ public class Client {
         this.email = email;
         this.phone = phone;
         this.attendeeList = attendeeList;
+    }
+
+    public String toSQL() {
+        String result = "";
+        result += "PRINT 'Inserting client #" + clientID + "'\n";
+        result += "SET IDENTITY_INSERT Clients ON\n";
+        result += String.format(Locale.US, "INSERT INTO Clients (" +
+                        "ClientID, Name, Login, Password, IsCompany, Email, Phone" +
+                        ")\nVALUES (%d, '%s', '%s', '%s', %d, '%s', '%s')\n",
+                clientID, name, login, password, 0, email, phone);
+        result += "SET IDENTITY_INSERT Clients OFF\n";
+        if(!attendeeList.isEmpty()) {
+            result += "SET IDENTITY_INSERT Attendees ON\n";
+            result += "INSERT INTO Attendees (AttendeeID, Name)\nVALUES\n";
+            result += attendeeList.stream()
+                    .map(attendee -> String.format("\t(%d, '%s')",
+                            attendee.attendeeID, attendee.name))
+                    .collect(Collectors.joining(",\n"));
+            result += "\nSET IDENTITY_INSERT Attendees OFF\n";
+        }
+        return result;
     }
 }
