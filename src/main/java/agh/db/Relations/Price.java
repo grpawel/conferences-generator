@@ -1,8 +1,5 @@
 package agh.db.Relations;
 
-/**
- * Created by Paweł Grochola on 30.01.2017.
- */
 public class Price {
     public final Integer priceID;
     public final Double pricePercent;

@@ -1,8 +1,5 @@
 package agh.db.Relations;
 
-/**
- * Created by Paweł Grochola on 02.02.2017.
- */
 public class BookingWorkshop {
     public final Integer bookingWorkshopID;
     public final Integer workshopID;

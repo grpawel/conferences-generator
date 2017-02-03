@@ -10,9 +10,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-/**
- * Created by Paweł Grochola on 31.01.2017.
- */
 public class Clients {
     private Integer currentClient = 0;
     private Integer currentAttendee = 0;
@@ -45,7 +42,7 @@ public class Clients {
                 .mapToObj(i -> createAttendee())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-        final Client client = new Client(currentClient, name, login, password, false, email, phone, attendees);
+        final Client client = new Client(currentClient, name, login, password, email, phone, attendees);
         currentClient++;
         return client;
     }

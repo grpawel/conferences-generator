@@ -14,14 +14,13 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-/**
- * Created by Paweł Grochola on 30.01.2017.
- */
 public class RandomData {
     private List<ApiData> data;
+
     public void read(final String path) throws IOException {
         final String json = new String(Files.readAllBytes(Paths.get(path)));
-        final Type collectionType = new TypeToken<List<ApiData>>() {}.getType();
+        final Type collectionType = new TypeToken<List<ApiData>>() {
+        }.getType();
         data = new Gson().fromJson(json, collectionType);
     }
 
@@ -38,6 +37,7 @@ public class RandomData {
                 .mapToObj(i -> parts1.get(i) + ' ' + parts2.get(i))
                 .collect(Collectors.toList());
     }
+
     public List<String> getWorkshopNames() {
         final List<String> parts1 = data.stream()
                 .map(apiData -> apiData.conf_name3)
@@ -51,17 +51,18 @@ public class RandomData {
                 .mapToObj(i -> parts1.get(i) + ' ' + parts2.get(i))
                 .collect(Collectors.toList());
     }
+
     public List<String> getNames() {
-        final List<String> firstnames = data.stream()
+        final List<String> firstNames = data.stream()
                 .map(apiData -> apiData.first_name)
                 .collect(Collectors.toList());
-        final List<String> lastnames = data.stream()
+        final List<String> lastNames = data.stream()
                 .map(apiData -> apiData.last_name)
                 .collect(Collectors.toList());
-        Collections.shuffle(firstnames);
-        Collections.shuffle(lastnames);
-        return IntStream.range(0, firstnames.size())
-                .mapToObj(i -> firstnames.get(i) + ' ' + lastnames.get(i))
+        Collections.shuffle(firstNames);
+        Collections.shuffle(lastNames);
+        return IntStream.range(0, firstNames.size())
+                .mapToObj(i -> firstNames.get(i) + ' ' + lastNames.get(i))
                 .collect(Collectors.toList());
     }
 
@@ -88,11 +89,13 @@ public class RandomData {
                 .map(apiData -> apiData.login1)
                 .collect(Collectors.toList());
     }
+
     public List<String> getPhones() {
         return data.stream()
                 .map(apiData -> apiData.phone)
                 .collect(Collectors.toList());
     }
+
     public List<String> getPasswords() {
         return data.stream()
                 .map(Object::hashCode)
@@ -101,8 +104,7 @@ public class RandomData {
     }
 
     public LocalTime getRandomDayTime() {
-        LocalTime time = LocalTime.of(10, 50);
-        return LocalTime.of(ThreadLocalRandom.current().nextInt(8,21),
-                ThreadLocalRandom.current().nextInt(0,60));
+        return LocalTime.of(ThreadLocalRandom.current().nextInt(8, 21),
+                ThreadLocalRandom.current().nextInt(0, 60));
     }
 }

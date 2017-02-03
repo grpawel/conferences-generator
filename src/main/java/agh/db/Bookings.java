@@ -11,13 +11,10 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Created by Paweł Grochola on 31.01.2017.
- */
 public class Bookings {
     private final List<Client> clients;
     private final List<Conference> conferences;
-    public final List<BookingConference> conferenceBookings = new ArrayList<>();
+    private final List<BookingConference> conferenceBookings = new ArrayList<>();
     private Integer currentReservationDay = 0;
     private Integer currentReservationWorkshop = 0;
     private Integer currentBookingDay = 0;
@@ -29,40 +26,11 @@ public class Bookings {
         this.conferences = conferences;
     }
 
-    private static class ClientDayBookings {
-        public List<Attendee> attendees;
-        public List<Pair<Workshop, List<Attendee>>> workshopsAttendees;
+    public List<BookingConference> getConferenceBookings() {
+        return conferenceBookings;
     }
 
-    private Integer getMaxConferenceDayCapacity(final Conference conference) {
-        return Math.max(conference.conferenceDays.stream()
-                        .mapToInt(value -> value.workshops.stream()
-                                .mapToInt(workshop -> workshop.capacity)
-                                .sum())
-                        .max().orElse(0),
-                conference.conferenceDays.stream()
-                        .mapToInt(value -> value.capacity).max().orElse(0));
-    }
-
-    private List<Attendee> getAttendeesListForDay(final Conference conference) {
-        final Integer maxDayCapacity = getMaxConferenceDayCapacity(conference);
-        Integer currentAttendees = 0;
-        final List<Client> clientsForConference = new ArrayList<>();
-        while (currentAttendees < maxDayCapacity) {
-            Client client = clients.get(ThreadLocalRandom.current().nextInt(0, clients.size()));
-            if (!clientsForConference.contains(client)) {
-                clientsForConference.add(client);
-                currentAttendees += client.attendeeList.size();
-            }
-        }
-        return clientsForConference.stream()
-                .map(client -> client.attendeeList.stream())
-                .flatMap(Function.identity())
-                .collect(Collectors.toList());
-
-    }
-
-    public void createBookings() {
+    public void generate() {
         for (Conference conference : conferences) {
             final List<Attendee> conferenceAttendees = getAttendeesListForDay(conference);
             final List<BookingDay> dayBookings = new ArrayList<>();
@@ -79,7 +47,7 @@ public class Bookings {
                     if (workshopCapacityToFill > workshop.capacity) {
                         workshopCapacityToFill = workshop.capacity;
                     }
-                    List<Attendee> workshopAttendees = new ArrayList<>();
+                    final List<Attendee> workshopAttendees = new ArrayList<>();
                     while (workshopAttendees.size() < workshopCapacityToFill
                             && dayAttendees.size() < dayCapacityToFill) {
                         workshopAttendees.add(conferenceAttendees.get(currentAttendee));
@@ -90,41 +58,84 @@ public class Bookings {
                 }
                 dayBookings.addAll(createBookingsForDay(conferenceDay, dayAttendees, allWorkshopsAttendees));
             }
-            Map<Integer, List<BookingDay>> clientDayBookings = dayBookings.stream().collect(Collectors.groupingBy(dayBooking -> dayBooking.clientID));
-            List<BookingConference> bookingConferences = clientDayBookings.entrySet().stream().map(entry -> new BookingConference(currentBookingConference++, conference.conferenceID, entry.getKey(),
-                    conference.startDate.minusDays(ThreadLocalRandom.current().nextInt(14, 36)), entry.getValue())).collect(Collectors.toList());
-
+            final Map<Integer, List<BookingDay>> clientDayBookings = dayBookings.stream()
+                    .collect(Collectors.groupingBy(dayBooking -> dayBooking.clientID));
+            final List<BookingConference> bookingConferences = clientDayBookings
+                    .entrySet().stream()
+                    .map(entry -> new BookingConference(
+                            currentBookingConference++,
+                            conference.conferenceID,
+                            entry.getKey(),
+                            conference.startDate.minusDays(ThreadLocalRandom.current().nextInt(14, 36)),
+                            entry.getValue())).collect(Collectors.toList());
             conferenceBookings.addAll(bookingConferences);
         }
     }
 
-    public List<BookingDay> createBookingsForDay(final ConferenceDay conferenceDay,
-                                                 final List<Attendee> dayAttendees,
-                                                 final List<Pair<List<Attendee>, Workshop>> allWorkshopAttendees) {
+    private List<BookingDay> createBookingsForDay(
+            final ConferenceDay conferenceDay,
+            final List<Attendee> dayAttendees,
+            final List<Pair<List<Attendee>, Workshop>> allWorkshopAttendees) {
         final List<BookingDay> bookingDays =
-                dayAttendees.stream().collect(Collectors.groupingBy(attendee -> attendee.clientID))
+                dayAttendees.stream()
+                        .collect(Collectors.groupingBy(attendee -> attendee.clientID))
                         .entrySet().stream()
                         .map(entry -> new Pair<>(new Pair<>(entry.getKey(), currentBookingDay++), entry.getValue()))
-                        .map(entry -> new BookingDay(entry.getKey().getValue(),
+                        .map(entry -> new BookingDay(
+                                entry.getKey().getValue(),
                                 conferenceDay.conferenceDayID,
                                 Math.toIntExact(entry.getValue().stream().filter(attendee -> attendee.studentCard == null).count()),
                                 Math.toIntExact(entry.getValue().stream().filter(attendee -> attendee.studentCard != null).count()),
-                                entry.getValue().stream().map(attendee -> new ReservationDay(attendee, currentReservationDay++)).collect(Collectors.toList()),
+                                entry.getValue().stream()
+                                        .map(attendee -> new ReservationDay(attendee, currentReservationDay++)).collect(Collectors.toList()),
                                 entry.getKey().getKey()))
                         .collect(Collectors.toList());
-        final Map<Attendee, ReservationDay> attendeeReservationDayMap = bookingDays.stream().map(bookingDay -> bookingDay.reservationDayList.stream()).flatMap(Function.identity())
+        final Map<Attendee, ReservationDay> attendeeReservationDayMap = bookingDays.stream()
+                .map(bookingDay -> bookingDay.reservationDayList.stream())
+                .flatMap(Function.identity())
                 .collect(Collectors.toMap(reservationDay -> reservationDay.attendee, Function.identity()));
         for (BookingDay bookingDay : bookingDays) {
             final Integer clientID = bookingDay.clientID;
-            List<Pair<List<Attendee>, Workshop>> clientWorkshopAttendees = allWorkshopAttendees.stream().map(pair -> new Pair<>(
-                    pair.getKey().stream().filter(attendee -> Objects.equals(attendee.clientID, clientID)).collect(Collectors.toList()),
-                    pair.getValue()))
+            final List<Pair<List<Attendee>, Workshop>> clientWorkshopAttendees = allWorkshopAttendees.stream()
+                    .map(pair -> new Pair<>(
+                            pair.getKey().stream().filter(attendee -> Objects.equals(attendee.clientID, clientID)).collect(Collectors.toList()),
+                            pair.getValue()))
                     .filter(pair -> !pair.getKey().isEmpty())
                     .collect(Collectors.toList());
             final List<BookingWorkshop> bookingWorkshops = createAndAddBookingWorkshops(clientWorkshopAttendees, attendeeReservationDayMap);
-            bookingDay.bookingWorkshopList.addAll(bookingWorkshops);
+            bookingWorkshops.forEach(bookingDay::addBookingWorkshop);
         }
         return bookingDays;
+
+    }
+
+    private Integer getMaxConferenceDayCapacity(final Conference conference) {
+        return Math.max(
+                conference.conferenceDays.stream()
+                        .mapToInt(value -> value.workshops.stream()
+                                .mapToInt(workshop -> workshop.capacity)
+                                .sum())
+                        .max().orElse(0),
+                conference.conferenceDays.stream()
+                        .mapToInt(value -> value.capacity)
+                        .max().orElse(0));
+    }
+
+    private List<Attendee> getAttendeesListForDay(final Conference conference) {
+        final Integer maxDayCapacity = getMaxConferenceDayCapacity(conference);
+        Integer currentAttendees = 0;
+        final List<Client> clientsForConference = new ArrayList<>();
+        while (currentAttendees < maxDayCapacity) {
+            final Client client = clients.get(ThreadLocalRandom.current().nextInt(0, clients.size()));
+            if (!clientsForConference.contains(client)) {
+                clientsForConference.add(client);
+                currentAttendees += client.attendeeList.size();
+            }
+        }
+        return clientsForConference.stream()
+                .map(client -> client.attendeeList.stream())
+                .flatMap(Function.identity())
+                .collect(Collectors.toList());
 
     }
 
@@ -137,10 +148,17 @@ public class Bookings {
                         pair.getKey()))
                 .map(pair -> new Pair<>(
                         pair.getKey(),
-                        pair.getValue().stream().map(attendee -> new ReservationWorkshop(currentReservationWorkshop++, pair.getKey().bookingWorkshopID, attendee)).collect(Collectors.toList())))
+                        pair.getValue().stream()
+                                .map(attendee -> new ReservationWorkshop(
+                                        currentReservationWorkshop++,
+                                        pair.getKey().bookingWorkshopID, attendee)).collect(Collectors.toList())))
                 .collect(Collectors.toList());
         bookingWorkshops.forEach(pair -> pair.getValue()
-                .forEach(reservationWorkshop -> attendeeReservationDayMap.get(reservationWorkshop.attendee).reservationWorkshopList.add(reservationWorkshop)));
-        return bookingWorkshops.stream().map(Pair::getKey).collect(Collectors.toList());
+                .forEach(reservationWorkshop -> attendeeReservationDayMap
+                        .get(reservationWorkshop.attendee)
+                        .addReservationWorkshop(reservationWorkshop)));
+        return bookingWorkshops.stream()
+                .map(Pair::getKey)
+                .collect(Collectors.toList());
     }
 }

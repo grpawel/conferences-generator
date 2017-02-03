@@ -3,15 +3,10 @@ package agh.db.Relations;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by Paweł Grochola on 31.01.2017.
- */
 public class ReservationDay {
-    public ReservationDay(Attendee attendee, Integer reservationDayID, List<ReservationWorkshop> reservationWorkshopList) {
-        this.attendee = attendee;
-        this.reservationDayID = reservationDayID;
-        this.reservationWorkshopList = reservationWorkshopList;
-    }
+    public final Attendee attendee;
+    public final Integer reservationDayID;
+    private final List<ReservationWorkshop> reservationWorkshopList;
 
     public ReservationDay(Attendee attendee, Integer id) {
         this.attendee = attendee;
@@ -19,7 +14,11 @@ public class ReservationDay {
         this.reservationWorkshopList = new ArrayList<>();
     }
 
-    public final Attendee attendee;
-    public final Integer reservationDayID;
-    public final List<ReservationWorkshop> reservationWorkshopList;
+    public void addReservationWorkshop(ReservationWorkshop reservationWorkshop) {
+        reservationWorkshopList.add(reservationWorkshop);
+    }
+
+    public List<ReservationWorkshop> getReservationWorkshopList() {
+        return reservationWorkshopList;
+    }
 }

@@ -7,17 +7,13 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-/**
- * Created by Paweł Grochola on 30.01.2017.
- */
 public class Prices {
     private static List<Double> PRICES = Collections.unmodifiableList(Arrays.asList(0.25, 0.36, 0.55, 0.85));
-    private static List<Integer> DAYS =  Collections.unmodifiableList(Arrays.asList(10,20,30,50));
+    private static List<Integer> DAYS = Collections.unmodifiableList(Arrays.asList(10, 20, 30, 50));
     private static Integer priceID = 0;
 
-
     public List<Price> generateRandomPrices() {
-        final int count = ThreadLocalRandom.current().nextInt(2,5);
+        final int count = ThreadLocalRandom.current().nextInt(2, 5);
         final List<Integer> days = getRandomDays(count);
         final List<Double> prices = getRandomPrices(count);
         return IntStream.range(0, count)

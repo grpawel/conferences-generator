@@ -2,9 +2,6 @@ package agh.db.Relations;
 
 import java.time.LocalTime;
 
-/**
- * Created by Paweł Grochola on 30.01.2017.
- */
 public class Workshop {
     public final Integer workshopID;
     public final String workshopName;
